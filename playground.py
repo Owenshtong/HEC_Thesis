@@ -28,7 +28,7 @@ bayes_beta = pd.read_csv("OUTPUT/bayes_beta.csv", index_col=0)
 #     plt.legend()
 #     ax.set_xticks(ax.get_xticks()[::200])
 #     plt.gcf()
-#     plt.savefig("OUTPUT/PLOT/baysian_" + i + "diff1.png")
+#     plt.savefig("OUTPUT/Plot/baysian_" + i + "diff1.png")
 #     plt.show()
 #
 # sm.graphics.tsa.plot_acf(dif_1["b5"])

@@ -90,6 +90,6 @@ for i in bayes_beta.columns:
     plt.legend()
     ax.set_xticks(ax.get_xticks()[::200])
     plt.gcf()
-    # plt.savefig("OUTPUT/PLOT/baysian_" + i + ".png")
+    # plt.savefig("OUTPUT/Plot/baysian_" + i + ".png")
     plt.show()
 
