@@ -8,13 +8,14 @@ import numpy as np
 
 
 # GLOBAL PARA #
-START_DATE = "150101"
-END_DATE = "230228"
+START_DATE = "050901"
+END_DATE = "221001"
+ticker = "XOM"
 
 
 # Read in data
-options = pd.read_csv(r"INPUT/Nike/OP_" + START_DATE + "_" + END_DATE + ".csv")
-forward_price = pd.read_csv(r"INPUT/Nike/FP_" + START_DATE + "_" + END_DATE + ".csv")
+options = pd.read_csv(r"INPUT/OptionMetric/Companies/XOM/OP_" + START_DATE + "_" + END_DATE + ".csv")
+forward_price = pd.read_csv(r"INPUT/OptionMetric/Companies/XOM/FP_" + START_DATE + "_" + END_DATE + ".csv")
 forward_price.rename(columns = {"expiration": "exdate"}, inplace=True)
 option_var_to_drop = ["index_flag", "issuer", "exercise_style", "optionid"]  # Options gives na forward prices. Match
                                                                                           # forward price with forward_price by date
@@ -91,6 +92,5 @@ options = options[~np.isnan(options["impl_volatility"])]
 # options = options[options["am_settlement"] == 1]
 
 
-
 # Save the modified option as CSV
-options.to_csv("OUTPUT/OP_MOD" + START_DATE + "_" + END_DATE + ".csv", index = False)
+options.to_csv("OUTPUT/OP_MOD_" + ticker + "-" + START_DATE + "_" + END_DATE + ".csv", index = False)

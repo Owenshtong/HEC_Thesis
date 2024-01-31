@@ -7,13 +7,14 @@ import SCRIPT.Interpolator as inp, SCRIPT.Baysian_OLS as bay
 
 
 # Date range of option data
-START_DATE = "150101"
-END_DATE = "230228"
+START_DATE = "050901"
+END_DATE = "221001"
+ticker = "XOM"
 
 
 # Read in the modified options data
-options = pd.read_csv("OUTPUT/OP_MOD" + START_DATE + "_" + END_DATE + ".csv")
-analysis_end = "2023-02-28" # date want to end for analysis
+options = pd.read_csv("OUTPUT/OP_MOD_" + ticker + "_" + START_DATE + "_" + END_DATE + ".csv")
+analysis_end = "2022-09-30" # date want to end for analysis
 
 ### Part1: Get the daily calibrated coefficients
 Days = list(options["date"].unique())
@@ -81,7 +82,7 @@ bayes_beta = pd.DataFrame([b1,b2,b3,b4,b5]).T
 bayes_beta.columns = ["b1", 'b2', "b3", "b4", "b5"]
 bayes_beta.index = Days[1:(ind_end + 1)]
 # bayes_beta.to_csv("OUTPUT/bayes_beta.csv")
-bayes_beta.to_csv("OUTPUT/bayes_beta_nike.csv")
+bayes_beta.to_csv("OUTPUT/bayes_beta_" + ticker + ".csv")
 
 for i in bayes_beta.columns:
     fig, ax = plt.subplots(figsize=(50, 10), dpi = 200)
@@ -90,6 +91,6 @@ for i in bayes_beta.columns:
     plt.legend()
     ax.set_xticks(ax.get_xticks()[::200])
     plt.gcf()
-    # plt.savefig("OUTPUT/Plot/baysian_" + i + ".png")
+    plt.savefig("OUTPUT/Plot/baysian_" + i + "_" + ticker + ".png")
     plt.show()
 

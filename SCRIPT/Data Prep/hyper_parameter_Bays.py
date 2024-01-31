@@ -8,7 +8,7 @@ import pandas as pd
 import SCRIPT.Interpolator as itp
 
 # Read Options
-options = pd.read_csv("OUTPUT/OP_MOD150101_230228.csv")
+options = pd.read_csv("OUTPUT/OP_MOD_XOM_050901_221001.csv")
 
 # Index days
 Days = options.date.unique()

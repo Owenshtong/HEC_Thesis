@@ -73,8 +73,7 @@ def Bayesian_GLS_coef(prior_beta, sigma_t, X, y):
     lower_left = np.zeros([4, nrow])
 
     up_left = np.eye(nrow) * sigma_t**2
-    # lower_right = np.diag([0.002709, 0.00297, 0.0004,  0.0001])
-    lower_right = np.diag([0.0023739792428610117, 0.006969972140899206, 0.0006628521657016231, 0.0001])
+    lower_right = np.diag([0.00545, 0.0039055, 0.0011465, 0.0001])
 
 
 
