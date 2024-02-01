@@ -52,10 +52,6 @@ for t in Days[1:(ind_end + 1)]:
     if ~np.isnan(ATM1month_temp):
         ATM1month = ATM1month_temp
 
-    # else:
-    #     print("At date " + str(t) + " , the 1month ATM IV can't be interpolated")
-    #     continue
-
     ATM1year_temp = inp.Interpolate_IV(options_t)
     if ~np.isnan(ATM1year_temp):
         ATM1year = ATM1year_temp

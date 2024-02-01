@@ -2,6 +2,9 @@
 ##### VAR and VAR-X #####
 #########################
 
+# TODO: Turn this script into module
+# TODO: Hyperparameters: Window size, tickers, lag
+
 # generic packs
 import numpy as np
 import pandas as pd
@@ -27,7 +30,7 @@ ind = beta_1_UMC.index
 # Filtered beta_1 and UMC
 Betas_1 = beta_1_UMC.iloc[:,0:5]
 UMC = beta_1_UMC.UMC
-
+UMC = UMC.shift(-1)
 
 
 ###### Model 1: VAR(1) ######
@@ -79,7 +82,6 @@ for i in range(w, T-1):
     VAR1xmode = model.fit(maxlags=1)
 
     pred = VAR1xmode.forecast(window.values[-1:], exog_future= x.values[-1:], steps=1)
-    print(pred[0])
     vault.loc[date_p] = pred[0]
 
 # Add back to beta
@@ -128,9 +130,12 @@ for i in vault.columns:
     plt.show()
 
 
-
 # NSE for VAR and VARX beta from raw beta
 rmse_VAR = np.sqrt(np.sum((Betas_hat_VAR - Betas)**2) / 4020)
 rmse_VARX = np.sqrt(np.sum((Betas_hat_VARX - Betas)**2) / 4020)
 rmse = pd.DataFrame([rmse_VAR, rmse_VARX], index=["VAR", "VARX"])
 
+
+# Save beta_hat
+Betas_hat_VAR.to_csv("OUTPUT/beta_var_XMO.csv")
+Betas_hat_VARX.to_csv("OUTPUT/beta_varx_XMO.csv")
