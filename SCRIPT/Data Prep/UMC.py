@@ -31,7 +31,7 @@ for i in range(1000, T):
     ar1mod = ARIMA.ARIMA(endog = window,
                order = (1,0,0))
     mod = ar1mod.fit(method = "hannan_rissanen")
-    pred = mod.forecast(steps=1)
+    pred = mod.forecast(steps=1) # predicted
     vault["MCCC_p"].loc[pred.index] = float(pred.iloc[0])
 
 # UMC
