@@ -14,7 +14,8 @@ import matplotlib.pyplot as plt
 from statsmodels.tsa.api import VAR
 
 # Read UMC
-UMC = pd.read_csv("OUTPUT/Data/UMC.csv", index_col=0).dropna()
+MCCC_daily = pd.read_excel("INPUT/MCCC.xlsx", sheet_name='2023 update daily', skiprows = 6, index_col=0)
+UMC = MCCC_daily["Aggregate"]
 
 # 1st diff
 Betas = pd.read_csv("OUTPUT/bayes_beta_XOM.csv", index_col=0)
