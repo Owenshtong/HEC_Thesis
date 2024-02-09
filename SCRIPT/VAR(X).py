@@ -31,7 +31,7 @@ ind = beta_1_UMC.index
 # Filtered beta_1 and UMC
 Betas_1 = beta_1_UMC.iloc[:,0:5]
 UMC = beta_1_UMC.UMC
-UMC = UMC.shift(-1)
+
 
 
 ###### Model 1: VAR(1) ######
