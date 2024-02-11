@@ -8,14 +8,14 @@ import numpy as np
 
 
 # GLOBAL PARA #
-START_DATE = "050901"
-END_DATE = "221001"
+START_DATE = "030101"
+END_DATE = "220831"
 ticker = "XOM"
 
 
 # Read in data
-options = pd.read_csv(r"INPUT/OptionMetric/Companies/XOM/OP_" + START_DATE + "_" + END_DATE + ".csv")
-forward_price = pd.read_csv(r"INPUT/OptionMetric/Companies/XOM/FP_" + START_DATE + "_" + END_DATE + ".csv")
+options = pd.read_csv(r"INPUT/OptionMetric/Companies/" + ticker + "/OP_" + ticker + "_" + START_DATE + "_" + END_DATE + ".csv")
+forward_price = pd.read_csv(r"INPUT/OptionMetric/Companies/"+ ticker +"/FP_" + ticker + "_" +START_DATE + "_" + END_DATE + ".csv")
 forward_price.rename(columns = {"expiration": "exdate"}, inplace=True)
 option_var_to_drop = ["index_flag", "issuer", "exercise_style", "optionid"]  # Options gives na forward prices. Match
                                                                                           # forward price with forward_price by date
