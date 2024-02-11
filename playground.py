@@ -62,36 +62,3 @@
 # # ]
 # #
 # # iplot(data)
-
-
-from SCRIPT.DataPrep import wrdsportal
-wrdsportal.fwd_quote(
-    secid=104533,
-    start_date="2003-01-01",
-    end_date="2022-08-31",
-    ticker="XOM"
-)
-wrdsportal.opt_quote(
-    secid=104533,
-    start_date="2003-01-01",
-    end_date="2022-08-31",
-    ticker="XOM"
-)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
