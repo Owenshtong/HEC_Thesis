@@ -73,4 +73,7 @@ def mod_option(path_fwd,
 
     # Drop unnecessary columns
     opt = opt.drop(["Unnamed: 0_x", "secid"] ,axis = 1)
+
+    # Data type
+    opt["date"] = pd.to_datetime(opt["date"])
     return opt
