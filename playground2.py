@@ -4,17 +4,17 @@ from SCRIPT.DataPrep import option_cls
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from SCRIPT.DataPrep import  option_cls
 
-BB_XOM = pd.read_csv()
+CVX = option_cls.option("CVX", 1000)
+CVX.mod_option()
+CVX.BGLS_betas()
+CVX.plot_betas()
 
-for i in XOM_BB.columns:
-    fig, ax = plt.subplots(figsize=(50, 10), dpi = 200)
-    ax.plot(XOM_BB[i],label = "CVX")
-    ax.plot(XOM.betas[i], label = "XOM")
-    plt.margins(x=0)
-    plt.legend()
-    ax.set_xticks(ax.get_xticks()[::200])
-    plt.gcf()
-    # plt.savefig("OUTPUT/Plot/baysian_" + i + "_" + ticker + ".png")
-    plt.show()
+XOM = option_cls.option("XOM", 1000)
+XOM.mod_option()
+XOM.BGLS_betas()
+XOM.plot_betas()
 
+CVX.BGLS_Prior_var
+XOM.BGLS_Prior_var

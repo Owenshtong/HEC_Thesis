@@ -5,7 +5,7 @@ import SCRIPT.IV as IV
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 import numpy as np
-
+import SCRIPT.Interpolator as itp
 
 def regressors(options):
     """
@@ -23,8 +23,6 @@ def regressors(options):
     X.columns = ["x2", "x3", "x4", "x5"]
 
     return X, y
-
-
 
 
 def OLS(y, X):
@@ -56,10 +54,38 @@ def beta_prior(ATM_1y_t, ATM_1m_t, beat3_t_1, beta5_t_1):
     return beta_prior_t.reshape([4,1])
 
 
+def __priorVar__(options):
 
-def Bayesian_GLS_coef(prior_beta, sigma_t, X, y):
+    # ATM option IV by interpolation
+    IV_ATM_1year = options.groupby("date").apply(
+        itp.Interpolate_IV
+    )
+    IV_ATM_1month = options.groupby("date").apply(lambda x:
+                                                  itp.Interpolate_IV(x, maturity=20 / 252)
+                                                  )
+    IV_ATM_04 = options.groupby("date").apply(lambda x:
+                                              itp.Interpolate_IV(x, log_moneyness=0.4, maturity=20 / 252)
+                                              )
+
+    slope = (IV_ATM_1year - IV_ATM_1month) / np.exp(-4 / 12)
+
+    moneyness_slope_prox = IV_ATM_1month - IV_ATM_04
+
+    # Prior var
+    beta1_prior_var = np.var(IV_ATM_1year)
+    beta2_prior_var = np.var(slope)
+    beta3_prior_var = np.var(moneyness_slope_prox)
+    beta5_prior_var = 1 * 1e-4
+
+    beta_prior = [beta1_prior_var, beta2_prior_var, beta3_prior_var, beta5_prior_var]
+
+    return beta_prior
+
+
+def Bayesian_GLS_coef(prior_beta, sigma_t, X, y, prior_var):
     """
     Corresponding to the setting from Rémi(2022) page 112
+    :param prior_var: The prior variance
     :return: GLS coefficient
     """
     # Infor matrix
@@ -73,7 +99,7 @@ def Bayesian_GLS_coef(prior_beta, sigma_t, X, y):
     lower_left = np.zeros([4, nrow])
 
     up_left = np.eye(nrow) * sigma_t**2
-    lower_right = np.diag([0.00545, 0.0039055, 0.0011465, 0.0001])
+    lower_right = np.diag(prior_var)
 
 
 

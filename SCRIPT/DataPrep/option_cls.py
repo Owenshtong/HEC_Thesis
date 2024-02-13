@@ -5,6 +5,7 @@ import copy
 import pandas as pd
 import os
 import numpy as np
+import matplotlib.pyplot as plt
 
 # my pack
 from SCRIPT.DataPrep import wrdsportal, mod_option
@@ -35,7 +36,7 @@ class option:
 
         # Bayes OLS betas
         self.betas = None
-
+        self.BGLS_Prior_var = None
 
     def mod_option(self, itm = False):
         # Input csv
@@ -69,11 +70,10 @@ class option:
         # NOTE: for some stock the data are too few after filtrating
         return opt_mod
 
-
-    def fit_betas(self):
+    def BGLS_betas(self):
         """
         Run Bayesian OLS on each single betas.
-        :return:
+        :return: dataframe of raw betas
         """
         # Check existence
         beta_csv_path = self.output_path + "/BB_" + self.csv_suffix
@@ -82,6 +82,10 @@ class option:
             bayes_beta = pd.read_csv(beta_csv_path, index_col=0)
             self.betas = bayes_beta
         else:
+            ### Part: get the hyper-paramter (Variance of prior)
+            prior_var = bay.__priorVar__(self.option)
+            self.BGLS_Prior_var = prior_var
+
             ### Part1: Get the daily calibrated coefficients
             Days = sorted(self.option["date"].unique())
             b1 = []
@@ -124,7 +128,7 @@ class option:
                 beta_prior = bay.beta_prior(ATM1year, ATM1month, beta3_t0, beta5_t0)
 
                 # GLS
-                beta_post = bay.Bayesian_GLS_coef(beta_prior, sigma, X, y)
+                beta_post = bay.Bayesian_GLS_coef(beta_prior, sigma, X, y, prior_var=prior_var)
 
                 # Update prior beta3 and 5
                 beta3_t0 = beta_post[2, 0]
@@ -148,9 +152,23 @@ class option:
 
         return bayes_beta
 
-    def plot_betas(self):
+    def plot_betas(self, save_fig = False):
         # TODO: move the plot function in main.py to here.
-        return None
+        fig_path = "OUTPUT/Plot/" + self.ticker
+        if not os.path.exists(fig_path):
+            os.makedirs(fig_path)
+
+        for i in self.betas.columns:
+            fig, ax = plt.subplots(figsize=(50, 10), dpi=200)
+            ax.plot(self.betas[i], label=i)
+            plt.margins(x=0)
+            plt.legend()
+            ax.set_xticks(ax.get_xticks()[::200])
+            plt.gcf()
+            if save_fig:
+                plt.savefig(fig_path + "/beta_" + self.ticker)
+            plt.show()
+
 
 
 
