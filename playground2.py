@@ -18,3 +18,9 @@ XOM.plot_betas()
 
 CVX.BGLS_Prior_var
 XOM.BGLS_Prior_var
+
+
+APPL = option_cls.option("APPL", 101594)
+APPL.mod_option()
+APPL.BGLS_betas()
+APPL.plot_betas()

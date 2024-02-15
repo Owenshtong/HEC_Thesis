@@ -8,7 +8,7 @@
 # generic packs
 import numpy as np
 import pandas as pd
-
+import matplotlib.pyplot as plt
 
 # Time series pack
 from statsmodels.tsa.api import VAR
@@ -19,8 +19,8 @@ UMC = MCCC_daily["Aggregate"]
 
 
 # 1st diff
-Betas = pd.read_csv("OUTPUT/bayes_beta_XOM.csv", index_col=0)
-
+Betas = pd.read_csv("OUTPUT/Data/OptionMetric/Companies/CVX/BB_CVX_030101_220831.csv", index_col=0)
+Betas.index = pd.to_datetime(Betas.index)
 Betas_1 = Betas.diff(1) # 1st order diff
 Betas_1 = Betas_1[1:]
 
@@ -31,7 +31,7 @@ ind = beta_1_UMC.index
 
 # Filtered beta_1 and UMC
 Betas_1 = beta_1_UMC.iloc[:,0:5]
-UMC = beta_1_UMC.UMC
+UMC = beta_1_UMC.Aggregate
 UMC = UMC.shift(-1)
 
 
