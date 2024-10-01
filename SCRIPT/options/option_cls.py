@@ -8,9 +8,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # my pack
-from SCRIPT.DataPrep import wrdsportal, mod_option
-import SCRIPT.Interpolator as inp, SCRIPT.Baysian_OLS as bay
-
+from SCRIPT.wrds import wrdsportal
+from SCRIPT.options import mod_option
+import SCRIPT.baysian.baysian_ols.Interpolator as inp, SCRIPT.baysian.baysian_ols.Baysian_OLS as bay
 
 #############################################################
 #################### Option object class ####################
@@ -19,8 +19,8 @@ import SCRIPT.Interpolator as inp, SCRIPT.Baysian_OLS as bay
 class option:
     def __init__(self, ticker: str,
                  secid: int,
-                 t0: str = "2003-01-01",
-                 tT: str = "2022-08-31",
+                 t0: str = "2012-01-01",
+                 tT: str = "2018-12-30",
                  input_path: str = "INPUT/OptionMetric/Companies/",
                  output_path: str = "OUTPUT/Data/OptionMetric/Companies/"):
         self.ticker = ticker
@@ -32,11 +32,15 @@ class option:
         self.end_date = tT
 
         # The merged and filtered final dataset
-        self.option = None
+        self.option = self.mod_option()
 
         # Bayes OLS betas
-        self.betas = None
+        self.betas = self.BGLS_betas()
         self.BGLS_Prior_var = None
+
+        # Delta beta
+        self.betas_d1 = self.betas.diff(1)[1:]
+
 
     def mod_option(self, itm = False):
         # Input csv
@@ -51,6 +55,7 @@ class option:
         if os.path.exists(self.output_path):
             opt_mod = pd.read_csv(mod_opt_path, index_col=0)
             self.option = opt_mod
+
 
         # see if the path exists
         else:
@@ -81,6 +86,10 @@ class option:
         if os.path.exists(beta_csv_path):
             bayes_beta = pd.read_csv(beta_csv_path, index_col=0)
             self.betas = bayes_beta
+
+            # Delta beta
+            d1 = bayes_beta.diff(1)
+            self.betas_d1 = d1[1:]
         else:
             ### Part: get the hyper-paramter (Variance of prior)
             prior_var = bay.__priorVar__(self.option)
@@ -102,6 +111,7 @@ class option:
             beta5_t0 = beta0[3]
 
             # Daily calibration
+            ATM1month = 0
 
             for t in Days[1:(len(Days) + 1)]:
 
@@ -152,8 +162,9 @@ class option:
 
         return bayes_beta
 
+
     def plot_betas(self, save_fig = False):
-        # TODO: move the plot function in main.py to here.
+        # TODO: move the plot function from main.py to here.
         fig_path = "OUTPUT/Plot/" + self.ticker
         if not os.path.exists(fig_path):
             os.makedirs(fig_path)
@@ -168,6 +179,30 @@ class option:
             if save_fig:
                 plt.savefig(fig_path + "/beta_" + self.ticker)
             plt.show()
+
+    def plot_betas_d1(self, save_fig = False):
+        # TODO: move the plot function from main.py to here.
+        fig_path = "OUTPUT/Plot/" + self.ticker
+        if not os.path.exists(fig_path):
+            os.makedirs(fig_path)
+
+        for i in self.betas.columns:
+            fig, ax = plt.subplots(figsize=(50, 10), dpi=200)
+            ax.plot(self.betas_d1[i], label=i)
+            plt.margins(x=0)
+            plt.legend("$\pi_1 = $")
+            ax.set_xticks(ax.get_xticks()[::200])
+            plt.gcf()
+            if save_fig:
+                plt.savefig(fig_path + "/beta_" + self.ticker + "d1")
+            plt.show()
+
+
+
+
+
+
+
 
 
 

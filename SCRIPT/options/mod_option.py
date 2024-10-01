@@ -9,7 +9,7 @@ def mod_option(path_fwd,
                path_option,
                ITM: bool = False):
     """
-    :param path_fwd: forwrad price data path (input)
+    :param path_fwd: forward price data path (input)
     :param path_option: option price data path (input)
     :param ITM: False if exclude ITM options
     :return:

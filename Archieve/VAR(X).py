@@ -2,6 +2,7 @@
 ##### VAR and VAR-X #####
 #########################
 
+#### Using OLS method to fit VAR and VAR-X
 # TODO: Turn this script into module
 # TODO: Hyperparameters: Window size, tickers, lag
 
@@ -15,11 +16,11 @@ from statsmodels.tsa.api import VAR
 
 # Read UMC
 MCCC_daily = pd.read_excel("INPUT/MCCC.xlsx", sheet_name='2023 update daily', skiprows = 6, index_col=0)
-UMC = MCCC_daily["Aggregate"]
+UMC = pd.read_csv("OUTPUT/UMC.csv", index_col=0).dropna()
 
 
 # 1st diff
-Betas = pd.read_csv("OUTPUT/Data/OptionMetric/Companies/CVX/BB_CVX_030101_220831.csv", index_col=0)
+Betas = pd.read_csv("OUTPUT/Data/OptionMetric/Companies/CVX/BB_CVX_120101_181230.csv", index_col=0)
 Betas.index = pd.to_datetime(Betas.index)
 Betas_1 = Betas.diff(1) # 1st order diff
 Betas_1 = Betas_1[1:]
@@ -31,8 +32,8 @@ ind = beta_1_UMC.index
 
 # Filtered beta_1 and UMC
 Betas_1 = beta_1_UMC.iloc[:,0:5]
-UMC = beta_1_UMC.Aggregate
-UMC = UMC.shift(-1)
+UMC = beta_1_UMC.UMC
+# UMC = UMC.shift(-1)
 
 
 ###### Model 1: VAR(1) ######
@@ -46,15 +47,23 @@ vault.columns = Betas_1.columns
 w = 20   # window length
 T = len(Betas_1)
 for i in range(w, T-1):
-    print(i)
+    # print(i)
     date_p = Betas_1.index[i+1]
     window = Betas_1.iloc[i-w : i]
     model = VAR(window)
     VAR1mode = model.fit(maxlags=1)
 
     pred = VAR1mode.forecast(window.values[-1:] ,steps=1)
-    print(pred[0])
+    # print(pred[0])
     vault.loc[date_p] = pred[0]
+
+# fig, ax = plt.subplots(figsize=(20, 10), dpi=200)
+# ax.plot(vault.b2, label = "var")
+# ax.plot(Betas_1.b2, label = "realized")
+# plt.legend()
+# plt.show()
+
+
 
 # Add back to original betas
 delta_beta_VAR = vault # save
@@ -114,6 +123,9 @@ for i in vault.columns:
     # VarX
     ax.plot(delta_beta_VARX[i], alpha = 0.7, label = r"$\Delta$ VARX")
 
+    # raw diff
+    ax.plot(Betas[i].diff(1)[1:], alpha=0.7, label=r"$\beta$")
+
     plt.legend()
     ax.set_xticks(ax.get_xticks()[::200])
     plt.show()
@@ -124,7 +136,7 @@ for i in vault.columns:
     fig, ax = plt.subplots(figsize=(50, 10), dpi=200)
 
     # Raw Beta
-    # ax.plot(Betas[i], alpha=0.4, label=r"$\beta$")
+    ax.plot(Betas[i], alpha=0.4, label=r"$\beta$")
 
     # VAR
     ax.plot(Betas_hat_VAR[i] - Betas[i], alpha=0.7, label=r"$\beta_{VAR}$")

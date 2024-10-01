@@ -50,15 +50,4 @@
 # options_t = options[options["date"] == t]
 # plt_f.plt_dyn_surf(beta_t_var1, options_t, t, M_u = 3, M_l = -2.1)
 
-#
-# import plotly.graph_objs as go
-# from plotly.offline import iplot
-#
-# # data = [
-# #     go.Surface(z=z1, colorscale='Electric', showscale=False),
-# #     go.Surface(z=z2, opacity=0.9, colorscale='Viridis', showscale=True),
-# #     go.Surface(z=z3, opacity=0.9, colorscale='Blues', showscale=False)
-# #
-# # ]
-# #
-# # iplot(data)
+

@@ -1,11 +1,11 @@
 # Bayesian Linear regression #
 # The script gives the generalized OLS as spesified by Rémi(2022) Appendix A.2#
 
-import SCRIPT.IV as IV
+import SCRIPT.IV.IV as IV
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 import numpy as np
-import SCRIPT.Interpolator as itp
+import SCRIPT.baysian.baysian_ols.Interpolator as itp
 
 def regressors(options):
     """

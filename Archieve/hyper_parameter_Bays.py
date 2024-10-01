@@ -5,7 +5,7 @@
 
 import numpy as np
 import pandas as pd
-import SCRIPT.Interpolator as itp
+import SCRIPT.baysian.baysian_ols.Interpolator as itp
 
 # Read Options
 options = pd.read_csv("OUTPUT/OP_MOD_XOM_050901_221001.csv")

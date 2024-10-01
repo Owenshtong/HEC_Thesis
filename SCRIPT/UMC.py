@@ -15,6 +15,8 @@ MCCC_agg_daily = MCCC_daily["Aggregate"]
 MCCC_agg_daily = MCCC_agg_daily.asfreq('D')
 
 
+
+
 ###### Rolling forecast
 #   - 1 day ahead
 #   - 1000 windows
@@ -56,3 +58,11 @@ plt.show()
 # Save UMC index
 vault.UMC.to_csv("OUTPUT/UMC.csv")
 
+
+MCCC_daily = pd.read_excel("INPUT/MCCC.xlsx",
+                           sheet_name='2023 update daily',
+                           skiprows = 6, index_col=0, parse_dates = False)
+MCCC_daily.index = MCCC_daily.index.astype(str)
+MCCC_agg_daily = MCCC_daily["Aggregate"]
+MCCC_agg_daily = pd.DataFrame(MCCC_agg_daily)
+MCCC_agg_daily.to_csv("OUTPUT/MCCC_agg_daily.csv")

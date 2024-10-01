@@ -1,92 +1,54 @@
-### Main Execution Work Space ###
+###################################
+########## Main Script ############
+###################################
 
-import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import SCRIPT.Interpolator as inp, SCRIPT.Baysian_OLS as bay
+
+from SCRIPT.options import option_cls
+from SCRIPT.var.var_cls import var
+from SCRIPT.var.helper import rolling_forecast as rf, _restore_beta as rb
 
 
-# Date range of option data
-START_DATE = "030101"
-END_DATE = "220831"
-ticker = "CVX"
+### Preparation ###
+
+# Exg vars
+UMC = pd.read_csv("OUTPUT/UMC.csv", index_col=0, parse_dates=True).dropna()
+MCCC = pd.read_csv("OUTPUT/MCCC_agg_daily.csv", index_col=0, parse_dates=True).dropna()
 
 
-# Read in the modified options data
-options = pd.read_csv("OUTPUT/Data/OptionMetric/Companies/CVX/OP_mod_" + ticker + "_" + START_DATE + "_" + END_DATE + ".csv")
+# Options data
+cvx = option_cls.option("CVX", 102968)  # Go to WRDS for the id
+cvx.betas_d1.index = pd.to_datetime(cvx.betas_d1.index)
+cvx.betas.index = pd.to_datetime(cvx.betas.index)
+
+ibm = option_cls.option("IBM", 106276)  # Go to WRDS for the id
+ibm.betas_d1.index = pd.to_datetime(ibm.betas_d1.index)
+ibm.betas.index = pd.to_datetime(ibm.betas.index)
+
+
+# Rollowing forecaste
+ticker = ibm
+
+n = 3000
+burnin = 2600
+window = 100
+lag = 3
 
 
 
-### Part1: Get the daily calibrated coefficients
-Days = sorted(options["date"].unique())
-b1 = []
-b2 = []
-b3 = []
-b4 = []
-b5 = []
-
-# Initialize the beta0 prior
-t0 = Days[0]
-X, y = bay.regressors(options[options['date'] == t0])
-_, beta0  = bay.OLS(y, X)
-beta3_t0 = beta0[1]
-beta5_t0 = beta0[3]
+F_wo_B, F_w_B, F_wo, F_w, realized, MSE = rf(ibm.betas_d1, UMC, 3, 100, 3000, 2600, 100, pi = [1, 1, 100], own_lag_prior_mean = 0)
 
 
-
-for t in Days[1:(len(Days) + 1)]:
-
-    print(t)
-
-    # Options data at t
-    options_t = options[options['date'] == t]
-
-    # Regressor
-    X, y = bay.regressors(options_t)
-
-    # OLS sigma estimates
-    sigma, _ = bay.OLS(y, X)
-
-    # Build prior
-    ATM1month_temp = inp.Interpolate_IV(options_t, log_moneyness=0, maturity=20 / 252)
-    if ~np.isnan(ATM1month_temp):
-        ATM1month = ATM1month_temp
-
-    ATM1year_temp = inp.Interpolate_IV(options_t)
-    if ~np.isnan(ATM1year_temp):
-        ATM1year = ATM1year_temp
+for i in ibm.betas.columns:
+    fig, ax = plt.subplots(figsize=(20, 10), dpi=200)
+    ax.plot(ibm.betas.loc[rb(F_w_B, ibm.betas).index].loc[:,i].iloc[-500:,], label = "realized beta")
+    ax.plot(rb(F_wo_B, ibm.betas).loc[:,i].iloc[-500:,], label = "without UMC Bay")
+    ax.plot(rb(F_w_B, ibm.betas).loc[:, i].iloc[-500:,], label="with UMC Bay")
+    # ax.plot(rb(F_wo, ibm.betas).loc[:, i], label="without UMC")
+    # ax.plot(rb(F_w, ibm.betas).loc[:, i], label="with UMC")
 
 
-    beta_prior = bay.beta_prior(ATM1year, ATM1month, beta3_t0, beta5_t0)
-
-    # GLS
-    beta_post = bay.Bayesian_GLS_coef(beta_prior, sigma, X, y)
-
-    # Update prior beta3 and 5
-    beta3_t0 = beta_post[2,0]
-    beta5_t0 = beta_post[4,0]
-
-    # Store the betas
-    b1.append(beta_post[0,0])
-    b2.append(beta_post[1,0])
-    b3.append(beta_post[2,0])
-    b4.append(beta_post[3,0])
-    b5.append(beta_post[4,0])
-
-# Save the results
-bayes_beta = pd.DataFrame([b1,b2,b3,b4,b5]).T
-bayes_beta.columns = ["b1", 'b2', "b3", "b4", "b5"]
-bayes_beta.index = Days[1:(len(Days) + 1)]
-# bayes_beta.to_csv("OUTPUT/bayes_beta.csv")
-bayes_beta.to_csv("OUTPUT/bayes_beta_" + ticker + ".csv")
-
-for i in bayes_beta.columns:
-    fig, ax = plt.subplots(figsize=(50, 10), dpi = 200)
-    ax.plot(bayes_beta[i],label = i)
-    plt.margins(x=0)
-    plt.legend()
-    ax.set_xticks(ax.get_xticks()[::200])
-    plt.gcf()
-    # plt.savefig("OUTPUT/Plot/baysian_" + i + "_" + ticker + ".png")
+    ax.legend()
     plt.show()
 

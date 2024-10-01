@@ -6,7 +6,7 @@ import os
 
 # Set up connections
 import wrds
-conn = wrds.Connection()
+conn = wrds.Connection(wrds_username = 'owen_tong')
 
 # Quote data
 def sql_string( secid: int, #Look up at [https://wrds-www.wharton.upenn.edu/search/company-search/code-lookup/?product_id=274&attribute_type_map=38|secid,5|ticker,7|cusip
@@ -110,4 +110,3 @@ def opt_quote(secid: int, #Look up at [https://wrds-www.wharton.upenn.edu/search
     opt.to_csv(newpath + "/OP_" + ticker + "_" + yyyy0 + month0 + day0 + "_" + yyyyT + monthT + dayT + ".csv")
 
     return opt
-
