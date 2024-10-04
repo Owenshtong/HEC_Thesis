@@ -6,8 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from SCRIPT.options import option_cls
-from SCRIPT.var.var_cls import var
-from SCRIPT.var.helper import rolling_forecast as rf, _restore_beta as rb
+from SCRIPT.var.helper import rolling_forecast as rf, restore_beta as rb
 
 
 ### Preparation ###
@@ -27,17 +26,15 @@ ibm.betas_d1.index = pd.to_datetime(ibm.betas_d1.index)
 ibm.betas.index = pd.to_datetime(ibm.betas.index)
 
 
-# Rollowing forecaste
-ticker = ibm
-
+# rolling forecast
+ticker = cvx
 n = 3000
 burnin = 2600
 window = 100
 lag = 3
+period = 1656
 
-
-
-F_wo_B, F_w_B, F_wo, F_w, realized, MSE = rf(ibm.betas_d1, UMC, 3, 100, 3000, 2600, 100, pi = [1, 1, 100], own_lag_prior_mean = 0)
+F_wo_B, F_w_B, F_wo, F_w, realized, MSE = rf(ticker.betas_d1, UMC, 3, window, n, burnin, period, pi = [1, 1, 1], own_lag_prior_mean = 0)
 
 
 for i in ibm.betas.columns:

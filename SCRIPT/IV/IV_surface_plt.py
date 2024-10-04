@@ -22,8 +22,8 @@ def plt_static_surf(betas, option_data, M_u = 2, M_l = -1, tu_u = 0, tu_l = 3, N
     M_range = np.linspace(M_l, M_u, N)
     tau_range = np.linspace(tu_l, tu_u, N)
     M, TAU = np.meshgrid(M_range, tau_range)
-    IV_vect = np.vectorize(IV_Remi, excluded=["beta"]) # vectorize the IV function
-    iv_fit = IV_vect(M, TAU, beta = betas)
+    IV_vect = np.vectorize(IV_Remi) # vectorize the IV function
+    iv_fit = IV_vect(M, TAU, betas.b1, betas.b2, betas.b3, betas.b4, betas.b5)
 
     # Plt
     fig = plt.figure(dpi = resolution)
@@ -54,8 +54,8 @@ def plt_dyn_surf(betas, option_data, t, Beta_B=None, Beta_B_UMC=None, M_u=2, M_l
 
     # Grid
     M, TAU = np.meshgrid(M_range, tau_range)
-    IV_vect = np.vectorize(IV_Remi, excluded=["beta"])  # vectorize the IV function
-    iv_fit = IV_vect(M, TAU, beta=betas)
+    IV_vect = np.vectorize(IV_Remi)  # vectorize the IV function
+    iv_fit = IV_vect(M, TAU, betas.b1, betas.b2, betas.b3, betas.b4, betas.b5)
 
 
     # Plot
@@ -67,15 +67,15 @@ def plt_dyn_surf(betas, option_data, t, Beta_B=None, Beta_B_UMC=None, M_u=2, M_l
     fig = go.Figure(data=[go.Surface(x=M, y=TAU, z=iv_fit, colorscale='Blues')], layout=layout)
 
     if Beta_B is not None:
-        iv_fit_beta_B = IV_vect(M, TAU, beta=Beta_B)
+        iv_fit_beta_B = IV_vect(M, TAU, Beta_B.b1, Beta_B.b2, Beta_B.b3, Beta_B.b4, Beta_B.b5)
         fig = go.Figure(data=[
             go.Surface(x=M, y=TAU,z=iv_fit, colorscale='Blues'),
             go.Surface(x=M, y=TAU,z=iv_fit_beta_B, colorscale='Oranges', showscale=False)
         ],layout = layout)
 
     if Beta_B_UMC is not None:
-        iv_fit_beta_B = IV_vect(M, TAU, beta=Beta_B)
-        iv_fit_beta_B_UMC = IV_vect(M, TAU, beta=Beta_B_UMC)
+        iv_fit_beta_B = IV_vect(M, TAU, Beta_B.b1, Beta_B.b2, Beta_B.b3, Beta_B.b4, Beta_B.b5)
+        iv_fit_beta_B_UMC = IV_vect(M, TAU, Beta_B_UMC.b1, Beta_B_UMC.b2, Beta_B_UMC.b3, Beta_B_UMC.b4, Beta_B_UMC.b5)
         fig = go.Figure(data=[
             go.Surface(x=M, y=TAU,z=iv_fit, colorscale='Blues'),
             go.Surface(x=M, y=TAU,z=iv_fit_beta_B, colorscale='Oranges',showscale=False),
@@ -83,8 +83,8 @@ def plt_dyn_surf(betas, option_data, t, Beta_B=None, Beta_B_UMC=None, M_u=2, M_l
         ], layout = layout)
 
     if (Beta_B_UMC is not None) & (Beta_B is not None):
-        iv_fit_beta_B = IV_vect(M, TAU, beta=Beta_B)
-        iv_fit_beta_B_UMC = IV_vect(M, TAU, beta=Beta_B_UMC)
+        iv_fit_beta_B = IV_vect(M, TAU, Beta_B.b1, Beta_B.b2, Beta_B.b3, Beta_B.b4, Beta_B.b5)
+        iv_fit_beta_B_UMC = IV_vect(M, TAU, Beta_B_UMC.b1, Beta_B_UMC.b2, Beta_B_UMC.b3, Beta_B_UMC.b4, Beta_B_UMC.b5)
         fig = go.Figure(data=[
             go.Surface(x=M, y=TAU, z=iv_fit_beta_B, colorscale='Oranges', showscale=False),
             go.Surface(x=M, y=TAU, z=iv_fit_beta_B_UMC, colorscale='Greens', showscale=False)
