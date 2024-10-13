@@ -25,16 +25,22 @@ ibm = option_cls.option("IBM", 106276)  # Go to WRDS for the id
 ibm.betas_d1.index = pd.to_datetime(ibm.betas_d1.index)
 ibm.betas.index = pd.to_datetime(ibm.betas.index)
 
+nee = option_cls.option("NEE", 104560)  # Go to WRDS for the id
+nee.betas_d1.index = pd.to_datetime(nee.betas_d1.index)
+nee.betas.index = pd.to_datetime(nee.betas.index)
+
+
+
 
 # rolling forecast
-ticker = cvx
+ticker = nee
 n = 3000
 burnin = 2600
 window = 100
 lag = 3
 period = 1656
 
-F_wo_B, F_w_B, F_wo, F_w, realized, MSE = rf(ticker.betas_d1, UMC, 3, window, n, burnin, period, pi = [1, 1, 1], own_lag_prior_mean = 0)
+F_wo_B, F_w_B, F_wo, F_w, realized = rf(ticker.betas_d1, UMC, 3, window, n, burnin, period, pi = [1, 1, 1], own_lag_prior_mean = 1)
 
 
 for i in ibm.betas.columns:
@@ -49,3 +55,5 @@ for i in ibm.betas.columns:
     ax.legend()
     plt.show()
 
+suf = "/Users/tongshihao/Dropbox/Academic/THESIS_HEC/CODE/OUTPUT/Data/OptionMetric/Companies/CVX/D_beta_111/"
+realized.to_csv(suf + "realized.csv")

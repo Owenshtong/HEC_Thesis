@@ -11,6 +11,9 @@ import matplotlib.pyplot as plt
 from SCRIPT.IV.IV import IV_Remi
 import copy
 import functools as ft
+from scipy.interpolate import InterpolatedUnivariateSpline
+from scipy.stats import norm
+
 
 def rolling_forecast(end,
                      exg,
@@ -152,12 +155,32 @@ def restore_beta(d_beta_hat_t, beta_t):
 
     return beta
 
-def merge_and_volhat(option, beta, beta_B, beta_B_UMC, beta_OLS, beta_OLS_UMC):
+
+def bls_forward(M, tau, r, sigma, F, c_or_p):
+    """
+    The forwrad version of bls option price formula
+    :return:
+    """
+    delta_1 = M / sigma + 0.5 * sigma * np.sqrt(tau)
+    delta_2 = M / sigma - 0.5 * sigma * np.sqrt(tau)
+    if c_or_p == "c":
+        re = np.exp(-r * tau) * F * (
+                norm.cdf(delta_1) - np.exp(-np.sqrt(tau) * M) * norm.cdf(delta_2)
+        )
+    else:
+        re = np.exp(-r * tau) * F * (
+                -norm.cdf(-delta_1) + np.exp(-np.sqrt(tau) * M) * norm.cdf(-delta_2)
+        )
+
+    return re
+
+def merge_and_volhat(option, beta, beta_B, beta_B_UMC, beta_OLS, beta_OLS_UMC, r):
     """
     1. Merge beta, beta hat (Bayesian), beta hat (bayesian) with UMC.
     2. Add columns of vol hat
+    3. Match options with risk-free-rate using the zero coupon yield quoted from optionmetrics # TODO: working in progress
     :param option: option data
-    :param beta:
+    :param r: zero coupon yield
     :return:
     """
     option_c = copy.copy(option)
@@ -197,6 +220,25 @@ def merge_and_volhat(option, beta, beta_B, beta_B_UMC, beta_OLS, beta_OLS_UMC):
         option_c["b1_OLS_UMC"], option_c["b2_OLS_UMC"], option_c["b3_OLS_UMC"], option_c["b4_OLS_UMC"], option_c["b5_OLS_UMC"]
     )
 
+    # Match r
+    l = []
+    for i in range(len(option_c)):
+        op = option_c.iloc[i, :]
+        op_day = op.days_to_expire
+        op_date = op.date
+        sub = r.loc[op_date]
+
+        # In/Extrapolator
+        ie = InterpolatedUnivariateSpline(sub.days, sub.rate)
+        r_in = ie(op_day)
+        l = np.append(l, r_in)
+    option_c["r"] = l / 100
+
+    # Add column for Option price
+    bls_forward_vec = np.vectorize(bls_forward)
+    option_c["O_B"] = bls_forward_vec(option_c.log_moneyness, option_c.tau, option_c.r, option_c.IV_B, option_c.forwardprice, option_c.cp_flag)
+    option_c["O_B_UMC"] = bls_forward_vec(option_c.log_moneyness, option_c.tau, option_c.r, option_c.IV_B_UMC, option_c.forwardprice, option_c.cp_flag)
+
     return option_c
 
 
@@ -217,6 +259,12 @@ def group_indicator(options):
         "0 < M <= 0.2" if (0 < x["log_moneyness"]) & (x["log_moneyness"] <= 0.2) else
         "0.2 < M <= 0.8" if (0.2 < x["log_moneyness"]) & (x["log_moneyness"] <= 0.8) else
         "0.8 < M",
+        axis=1
+    )
+    options["log_moneyness_group_pn"] = options.apply(
+        lambda x: "M <= -0.057" if (x["log_moneyness"] <= -0.057) else
+        "-0.057 < M <= 0.17" if (-0.057 < x["log_moneyness"]) & (x["log_moneyness"] <= 0.17) else
+        "0.17 < M",
         axis=1
     )
     options = options[options["date"] <= "2019-06-26"]
