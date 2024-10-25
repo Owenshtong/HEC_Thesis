@@ -11,7 +11,7 @@ from SCRIPT.baysian.baysian_ols.Baysian_OLS import OLS as OLS
 from statsmodels.tsa.api import VAR
 
 class var:
-    def __init__(self, end, exg, p, pi=None, own_lag_prior_mean = 1):
+    def __init__(self, end, exg, p, pi=None, own_lag_prior_mean = 0):
         """
         Initialize a var object
         :param end: endogeneous variables (y)

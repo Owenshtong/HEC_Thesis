@@ -91,7 +91,7 @@ class option:
             d1 = bayes_beta.diff(1)
             self.betas_d1 = d1[1:]
         else:
-            ### Part: get the hyper-paramter (Variance of prior)
+            ### Part: get the hyper_mean_0_pi3_0.8-paramter (Variance of prior)
             prior_var = bay.__priorVar__(self.option)
             self.BGLS_Prior_var = prior_var
 

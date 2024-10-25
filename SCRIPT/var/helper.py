@@ -13,6 +13,8 @@ import copy
 import functools as ft
 from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.stats import norm
+import plotly.graph_objs as go
+import plotly.io as pio
 
 
 def rolling_forecast(end,
@@ -21,10 +23,10 @@ def rolling_forecast(end,
                      window,
                      n,
                      burnin,
+                     pi,
                      period = None,
-                     pi=None,
                      save_plot = False,
-                     own_lag_prior_mean = 1):
+                     own_lag_prior_mean = 0):
     '''
     :param end: endogenous variables
     :param exg: exogenous variables
@@ -93,22 +95,22 @@ def rolling_forecast(end,
 
     # The realized beta
     test = end.iloc[window:(window+period), :].reset_index(drop=True)
-
-    # Summarize MSE and plot
-    for i in range(cvx_var.m):
-        fig, ax = plt.subplots(figsize=(20, 10), dpi=200)
-        ax.plot(test.iloc[:, i], label= r"Realized $\Delta \beta$")
-        ax.plot(Fhat_woex_B.iloc[:, i], label="Without UMC (Bayesian)")
-        ax.plot(Fhat_wex_B.iloc[:, i], label="With UMC (Bayesian)")
-        ax.plot(Fhat_woex.iloc[:, i], label="Without UMC (VAR)")
-        ax.plot(Fhat_wex.iloc[:, i], label="With UMC (VAR)")
-        plt.legend()
-        plt.title(r'$\pi_1=$' + str(cvx_var.pi1) + r'$, \pi_2=$' + str(cvx_var.pi2) + r', $\pi_3 = $' + str(cvx_var.pi3))
-        plt.margins(x=0)
-        if save_plot:
-            plt.gcf()
-            plt.savefig("OUTPUT/Plot/Hyper parameter check/" + str(cvx_var.pi1) + "_" + str(cvx_var.pi3) + "beta" +str(i+1)+ ".jpg")
-        plt.show()
+    #
+    # # Summarize MSE and plot
+    # for i in range(cvx_var.m):
+    #     fig, ax = plt.subplots(figsize=(20, 10), dpi=200)
+    #     ax.plot(test.iloc[:, i], label= r"Realized $\Delta \beta$")
+    #     ax.plot(Fhat_woex_B.iloc[:, i], label="Without UMC (Bayesian)")
+    #     ax.plot(Fhat_wex_B.iloc[:, i], label="With UMC (Bayesian)")
+    #     ax.plot(Fhat_woex.iloc[:, i], label="Without UMC (VAR)")
+    #     ax.plot(Fhat_wex.iloc[:, i], label="With UMC (VAR)")
+    #     plt.legend()
+    #     plt.title(r'$\pi_1=$' + str(cvx_var.pi1) + r'$, \pi_2=$' + str(cvx_var.pi2) + r', $\pi_3 = $' + str(cvx_var.pi3))
+    #     plt.margins(x=0)
+    #     if save_plot:
+    #         plt.gcf()
+    #         plt.savefig("OUTPUT/Plot/Hyper parameter check/" + str(cvx_var.pi1) + "_" + str(cvx_var.pi3) + "beta" +str(i+1)+ ".jpg")
+    #     plt.show()
 
 
 
@@ -159,7 +161,6 @@ def restore_beta(d_beta_hat_t, beta_t):
 def bls_forward(M, tau, r, sigma, F, c_or_p):
     """
     The forwrad version of bls option price formula
-    :return:
     """
     delta_1 = M / sigma + 0.5 * sigma * np.sqrt(tau)
     delta_2 = M / sigma - 0.5 * sigma * np.sqrt(tau)
@@ -174,7 +175,7 @@ def bls_forward(M, tau, r, sigma, F, c_or_p):
 
     return re
 
-def merge_and_volhat(option, beta, beta_B, beta_B_UMC, beta_OLS, beta_OLS_UMC, r):
+def merge_and_volhat(option, beta, beta_B, beta_B_UMC, beta_OLS, beta_OLS_UMC, r = None):
     """
     1. Merge beta, beta hat (Bayesian), beta hat (bayesian) with UMC.
     2. Add columns of vol hat
@@ -220,24 +221,24 @@ def merge_and_volhat(option, beta, beta_B, beta_B_UMC, beta_OLS, beta_OLS_UMC, r
         option_c["b1_OLS_UMC"], option_c["b2_OLS_UMC"], option_c["b3_OLS_UMC"], option_c["b4_OLS_UMC"], option_c["b5_OLS_UMC"]
     )
 
-    # Match r
-    l = []
-    for i in range(len(option_c)):
-        op = option_c.iloc[i, :]
-        op_day = op.days_to_expire
-        op_date = op.date
-        sub = r.loc[op_date]
-
-        # In/Extrapolator
-        ie = InterpolatedUnivariateSpline(sub.days, sub.rate)
-        r_in = ie(op_day)
-        l = np.append(l, r_in)
-    option_c["r"] = l / 100
-
-    # Add column for Option price
-    bls_forward_vec = np.vectorize(bls_forward)
-    option_c["O_B"] = bls_forward_vec(option_c.log_moneyness, option_c.tau, option_c.r, option_c.IV_B, option_c.forwardprice, option_c.cp_flag)
-    option_c["O_B_UMC"] = bls_forward_vec(option_c.log_moneyness, option_c.tau, option_c.r, option_c.IV_B_UMC, option_c.forwardprice, option_c.cp_flag)
+    # # Match r
+    # l = []
+    # for i in range(len(option_c)):
+    #     op = option_c.iloc[i, :]
+    #     op_day = op.days_to_expire
+    #     op_date = op.date
+    #     sub = r.loc[op_date]
+    #
+    #     # In/Extrapolator
+    #     ie = InterpolatedUnivariateSpline(sub.days, sub.rate)
+    #     r_in = ie(op_day)
+    #     l = np.append(l, r_in)
+    # option_c["r"] = l / 100
+    #
+    # # Add column for Option price
+    # bls_forward_vec = np.vectorize(bls_forward)
+    # option_c["O_B"] = bls_forward_vec(option_c.log_moneyness, option_c.tau, option_c.r, option_c.IV_B, option_c.forwardprice, option_c.cp_flag)
+    # option_c["O_B_UMC"] = bls_forward_vec(option_c.log_moneyness, option_c.tau, option_c.r, option_c.IV_B_UMC, option_c.forwardprice, option_c.cp_flag)
 
     return option_c
 
@@ -261,15 +262,121 @@ def group_indicator(options):
         "0.8 < M",
         axis=1
     )
+    # options["log_moneyness_group_pn"] = options.apply(
+    #     lambda x: "M <= -0.057" if (x["log_moneyness"] <= -0.057) else
+    #     "-0.057 < M <= 0.17" if (-0.057 < x["log_moneyness"]) & (x["log_moneyness"] <= 0.17) else
+    #     "0.17 < M",
+    #     axis=1
+    # )
     options["log_moneyness_group_pn"] = options.apply(
-        lambda x: "M <= -0.057" if (x["log_moneyness"] <= -0.057) else
-        "-0.057 < M <= 0.17" if (-0.057 < x["log_moneyness"]) & (x["log_moneyness"] <= 0.17) else
-        "0.17 < M",
+        lambda x: "M <= -0.02" if (x["log_moneyness"] <= -0.02) else
+        "-0.02 < M <= 0.17" if (-0.02 < x["log_moneyness"]) & (x["log_moneyness"] <= 0.02) else
+        "0.02 < M",
         axis=1
     )
     options = options[options["date"] <= "2019-06-26"]
 
     return options
+
+
+
+###### Hyper parameter calibration ######
+
+def _rmse_b(pi1,
+            pi2,
+            n,
+            burnin,
+            window,
+            lag,
+            period,
+            end,
+            exg,
+            pi3 = 100):
+    """
+    1. We don't calibrate pi 2 since we detect that the results are not sensitive to the choice of pi2,
+        so we set it, as suggested by K and K the common value, as 0.005.
+    2. We carried out calibration over pi1 for the model without UMC, and over a pre-designed meshgrid of
+        pi1 and pi3 for the model with UMC
+    :return:
+    """
+    print(pi1)
+    print(pi2)
+    F_wo_B, F_w_B, _, _, realized = rolling_forecast(
+        end, exg, lag, window, n, burnin, [pi1, pi2, pi3],
+        period = period, own_lag_prior_mean = 1
+    )
+    s_w, s_wo, spe_w, spe_wo  = 0, 0, 0, 0
+    for i in F_w_B.columns:
+        s_w += sum((F_w_B[i] - realized[i])**2/len(F_w_B))
+        s_wo += sum((F_wo_B[i] - realized[i])**2/len(F_w_B))
+        spe_w += sum(((F_w_B[i] - realized[i])/realized[i])**2/len(F_w_B))
+        spe_wo += sum(((F_wo_B[i] - realized[i])/realized[i])**2/len(F_w_B))
+
+    return s_w, s_wo, spe_w, spe_wo
+
+def _rmse_b_over_meshgrid(
+            cord_df,
+            n,
+            burnin,
+            window,
+            lag,
+            period,
+            end,
+            exg
+            ):
+    """
+    ******** Depreciated  ********
+    This function should be run separately from the main function. After the df is produced,
+    make a plot of the rmse and try to find the lowest point
+    :param cord_df: A data frame with two columns named pi1 and pi2, containing the meshgrid coordinates
+    of pis on which the sum of rmse to be evaluated.
+    :return: df containing the columns of sum rmse for the two models.
+    """
+    cord = copy.copy(cord_df)
+
+    l_sw = []
+    l_swo = []
+    for i in range(len(cord)):
+        pi1, pi3 = cord.iloc[i, :].pi1, cord.iloc[i, :].pi3
+        sw_i, swo_i = _rmse_b(pi1, pi3, n, burnin, window, lag, period, end, exg)
+        l_sw = np.append(l_sw, sw_i)
+        l_swo = np.append(l_swo, swo_i)
+
+    cord["srmse_umc"] = l_sw
+    cord["srmse"] = l_swo
+
+    return cord
+
+def _srmse_plt_static(Grid_pi1, Grid_pi3, srmse_with_umc, vert_ang = 15, hrizo_ang = -120):
+    ax = plt.axes(projection="3d")
+    ax.view_init(vert_ang, hrizo_ang)
+    ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+    ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+    ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+
+    # make the grid lines transparent
+    ax.xaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
+    ax.yaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
+    ax.zaxis._axinfo["grid"]['color'] = (1, 1, 1, 0)
+
+    ax.plot_wireframe(Grid_pi1, Grid_pi3, srmse_with_umc)
+
+    plt.show()
+
+
+def _srmse_plt_dyn(Grid_pi1, Grid_pi3, srmse_with_umc):
+    pio.renderers.default = "browser"
+    lines = []
+    line_marker = dict(color='#000000', width=4)
+    for i, j, k in zip(Grid_pi1, Grid_pi3, srmse_with_umc):
+        lines.append(go.Scatter3d(x=i, y=j, z=k, mode='lines', line=line_marker))
+    for i, j, k in zip(Grid_pi1.T, Grid_pi3.T, srmse_with_umc.T):
+        lines.append(go.Scatter3d(x=i, y=j, z=k, mode='lines', line=line_marker))
+    fig = go.Figure(lines)
+    return fig
+
+
+
 
 
 

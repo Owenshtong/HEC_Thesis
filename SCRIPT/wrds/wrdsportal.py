@@ -44,7 +44,7 @@ def sql_string( secid: int, #Look up at [https://wrds-www.wharton.upenn.edu/sear
         name_fwd = tables.forward_price[i]
         name_option = tables.option_price[i]
 
-        # Curret fwd query
+        # Current fwd query
         q_fwd_i = "select secid, date as date, expiration, forwardprice" + " " \
                                                                            " from optionm." + name_fwd + " " + \
                   " where secid = " + str(secid) + \

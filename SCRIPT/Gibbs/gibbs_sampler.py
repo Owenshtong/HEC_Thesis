@@ -83,6 +83,10 @@ def gibbs_sampler(var,n, ex = True):
     return gamma_samples, Phi_samples
 
 
+def _accum_mean(gamma_df):
+    return gamma_df.expanding().mean()
+
+
 
 
 
